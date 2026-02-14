@@ -92,8 +92,9 @@ function listData() {
     const values = range.getValues();
     
     // Formata os dados em objetos
+    const timeZone = Session.getScriptTimeZone();
     const data = values.map(row => ({
-      timestamp: Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm:ss'),
+      timestamp: Utilities.formatDate(new Date(row[0]), timeZone, 'dd/MM/yyyy HH:mm:ss'),
       nome: row[1],
       email: row[2],
       mensagem: row[3]
