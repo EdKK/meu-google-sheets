@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador Google Sheets</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      max-width: 800px;
+      width: 100%;
+      padding: 30px;
+    }
+
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+
+    .form-section {
+      margin-bottom: 30px;
+      padding-bottom: 30px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+    }
+
+    .btn-save {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-save:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-list {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-list:hover {
+      background: #38a169;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .message {
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .data-section {
+      margin-top: 30px;
+    }
+
+    .data-section h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .data-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .data-item {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      transition: transform 0.2s;
+    }
+
+    .data-item:hover {
+      transform: translateX(5px);
+    }
+
+    .data-timestamp {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+
+    .data-nome {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .data-email {
+      color: #667eea;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .data-mensagem {
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .loading {
+      text-align: center;
+      color: #667eea;
+      font-size: 14px;
+      display: none;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #999;
+      padding: 40px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📝 Gerenciador Google Sheets</h1>
+    
+    <!-- Formulário -->
+    <div class="form-section">
+      <div class="message" id="message"></div>
+      
+      <div class="form-group">
+        <label for="nome">Nome *</label>
+        <input type="text" id="nome" placeholder="Digite seu nome" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Email *</label>
+        <input type="email" id="email" placeholder="seu.email@exemplo.com" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="mensagem">Mensagem *</label>
+        <textarea id="mensagem" placeholder="Digite sua mensagem aqui..." required></textarea>
+      </div>
+      
+      <div class="button-group">
+        <button class="btn-save" onclick="saveData()">💾 Salvar</button>
+        <button class="btn-list" onclick="loadData()">📋 Listar</button>
+      </div>
+    </div>
+    
+    <!-- Lista de dados -->
+    <div class="data-section">
+      <h2>Registros Salvos</h2>
+      <div class="loading" id="loading">Carregando...</div>
+      <div class="data-list" id="dataList"></div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Exibe mensagem de sucesso ou erro
+     */
+    function showMessage(message, isSuccess) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = message;
+      messageDiv.className = 'message show ' + (isSuccess ? 'success' : 'error');
+      
+      setTimeout(() => {
+        messageDiv.classList.remove('show');
+      }, 5000);
+    }
+
+    /**
+     * Limpa o formulário
+     */
+    function clearForm() {
+      document.getElementById('nome').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('mensagem').value = '';
+    }
+
+    /**
+     * Valida os campos do formulário
+     */
+    function validateForm() {
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const mensagem = document.getElementById('mensagem').value.trim();
+      const emailInput = document.getElementById('email');
+      
+      if (!nome || !email || !mensagem) {
+        showMessage('Por favor, preencha todos os campos!', false);
+        return false;
+      }
+      
+      // Usa a validação nativa do navegador para email
+      if (!emailInput.validity.valid) {
+        showMessage('Por favor, insira um email válido!', false);
+        return false;
+      }
+      
+      return true;
+    }
+
+    /**
+     * Salva os dados na planilha
+     */
+    function saveData() {
+      if (!validateForm()) {
+        return;
+      }
+      
+      const data = {
+        nome: document.getElementById('nome').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        mensagem: document.getElementById('mensagem').value.trim()
+      };
+      
+      // Desabilita botões durante o envio
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(btn => btn.disabled = true);
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          buttons.forEach(btn => btn.disabled = false);
+          
+          if (response.success) {
+            showMessage(response.message, true);
+            clearForm();
+            // Recarrega a lista automaticamente
+            loadData();
+          } else {
+            showMessage(response.message, false);
+          }
+        })
+        .withFailureHandler(function(error) {
+          buttons.forEach(btn => btn.disabled = false);
+          showMessage('Erro ao salvar: ' + error.message, false);
+        })
+        .saveData(data);
+    }
+
+    /**
+     * Carrega e exibe os dados da planilha
+     */
+    function loadData() {
+      const dataList = document.getElementById('dataList');
+      const loading = document.getElementById('loading');
+      
+      loading.classList.add('show');
+      dataList.innerHTML = '';
+      
+      google.script.run
+        .withSuccessHandler(function(response) {
+          loading.classList.remove('show');
+          
+          if (response.success) {
+            if (response.data.length === 0) {
+              dataList.innerHTML = '<div class="empty-state">Nenhum registro encontrado. Adicione alguns dados usando o formulário acima!</div>';
+            } else {
+              dataList.innerHTML = response.data.map(item => `
+                <div class="data-item">
+                  <div class="data-timestamp">📅 ${item.timestamp}</div>
+                  <div class="data-nome">👤 ${item.nome}</div>
+                  <div class="data-email">📧 ${item.email}</div>
+                  <div class="data-mensagem">💬 ${item.mensagem}</div>
+                </div>
+              `).join('');
+            }
+            
+            if (response.message) {
+              showMessage(response.message, true);
+            }
+          } else {
+            showMessage(response.message, false);
+            dataList.innerHTML = '<div class="empty-state">Erro ao carregar dados.</div>';
+          }
+        })
+        .withFailureHandler(function(error) {
+          loading.classList.remove('show');
+          showMessage('Erro ao carregar: ' + error.message, false);
+          dataList.innerHTML = '<div class="empty-state">Erro ao carregar dados.</div>';
+        })
+        .listData();
+    }
+
+    /**
+     * Carrega os dados automaticamente quando a página é aberta
+     */
+    window.addEventListener('DOMContentLoaded', function() {
+      loadData();
+    });
+
+    /**
+     * Permite salvar com Enter (exceto no textarea)
+     */
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        saveData();
+      }
+    });
+  </script>
+</body>
+</html>
