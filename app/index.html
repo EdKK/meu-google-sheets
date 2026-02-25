@@ -1,1 +1,143 @@
-<content of the current index.html file>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operador Google Sheets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        #resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f0fe;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Operador Google Sheets</h1>
+        
+        <div class="form-group">
+            <label for="sheetId">ID da Planilha:</label>
+            <input type="text" id="sheetId" placeholder="Cole aqui o ID da sua planilha">
+            <small>O ID está na URL: docs.google.com/spreadsheets/d/<strong>ID_AQUI</strong>/edit</small>
+        </div>
+
+        <div class="form-group">
+            <label for="apiKey">API Key:</label>
+            <input type="text" id="apiKey" placeholder="Cole sua Google API Key">
+        </div>
+
+        <div class="form-group">
+            <label for="range">Intervalo (ex: A1:B10):</label>
+            <input type="text" id="range" value="A1:D10" placeholder="A1:D10">
+        </div>
+
+        <button onclick="lerDados()">📥 Ler Dados</button>
+        <button onclick="limparResultado()">🗑️ Limpar</button>
+
+        <div id="resultado"></div>
+    </div>
+
+    <script>
+        async function lerDados() {
+            const sheetId = document.getElementById('sheetId').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const range = document.getElementById('range').value;
+            const resultado = document.getElementById('resultado');
+
+            if (!sheetId || !apiKey) {
+                alert('Por favor, preencha o ID da planilha e a API Key!');
+                return;
+            }
+
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+
+            try {
+                resultado.innerHTML = '<p>⏳ Carregando...</p>';
+                resultado.style.display = 'block';
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.error) {
+                    resultado.innerHTML = `<p style="color: red;">❌ Erro: ${data.error.message}</p>`;
+                    return;
+                }
+
+                if (data.values) {
+                    let html = '<h3>✅ Dados da Planilha:</h3>';
+                    html += '<table style="width:100%; border-collapse: collapse;">';
+                    
+                    data.values.forEach((row, index) => {
+                        html += '<tr>';
+                        row.forEach(cell => {
+                            const tag = index === 0 ? 'th' : 'td';
+                            html += `<${tag} style="border: 1px solid #ddd; padding: 8px;">${cell}</${tag}>`;
+                        });
+                        html += '</tr>'; 
+                    });
+                    
+                    html += '</table>'; 
+                    resultado.innerHTML = html;
+                } else {
+                    resultado.innerHTML = '<p>Nenhum dado encontrado.</p>';
+                }
+            } catch (error) {
+                resultado.innerHTML = `<p style="color: red;">❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        function limparResultado() {
+            document.getElementById('resultado').style.display = 'none';
+            document.getElementById('resultado').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
