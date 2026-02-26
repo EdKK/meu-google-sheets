@@ -6,6 +6,6 @@ Edita no GitHub
 
 Commit
 
-Atualiza o link
+Atualiza o link ctrl + shift +H
 
 Vê funcionando
