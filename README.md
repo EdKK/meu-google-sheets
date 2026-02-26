@@ -1,1 +1,11 @@
 # meu-google-sheets
+
+Sempre que quiser mudar algo:
+
+Edita no GitHub
+
+Commit
+
+Atualiza o link
+
+Vê funcionando
